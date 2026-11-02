@@ -149,12 +149,15 @@
     .booking h2 em{color:#8b7845;font-weight:400}
     .booking-copy p{max-width:410px;margin:0;color:#5e6559;font-size:var(--body-size);line-height:1.8}
     .booking-note{display:block;margin-top:26px;color:#7b715b;font-family:var(--script);font-size:38px;line-height:1}
-    .booking-form{display:grid;gap:23px;padding-top:12px}
-    .form-row{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
-    .booking-form label{display:grid;grid-template-rows:38px auto auto;align-content:start;gap:9px;color:#5b6256;font-size:13px;font-weight:600;letter-spacing:.06em}
-    .field-label{display:block;min-height:18px;line-height:1.4}
-    .booking-form input,.booking-form select,.booking-form textarea{width:100%;height:56px;min-height:56px;padding:13px 15px;border:1px solid #bcb7a7;border-radius:0;background:#f6f1e7;color:var(--ink);font-size:16px;letter-spacing:0}
-    .booking-form textarea{height:94px;min-height:94px;resize:vertical}
+    .booking,.booking-copy,.booking-form,.form-row,.booking-form label{min-width:0}
+    .booking-form{display:grid;min-width:0;gap:23px;padding-top:12px}
+    .form-row{display:grid;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;align-items:start}
+    .booking-form label{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(38px,auto) auto auto;align-content:start;gap:9px;min-width:0;color:#5b6256;font-size:13px;font-weight:600;letter-spacing:.06em}
+    .field-label{display:block;min-width:0;min-height:18px;line-height:1.4}
+    .booking-form input,.booking-form select,.booking-form textarea{display:block;width:100%;min-width:0;max-width:100%;height:56px;min-height:56px;padding:13px 12px;border:1px solid #bcb7a7;border-radius:0;background:#f6f1e7;color:var(--ink);font-size:16px;letter-spacing:0}
+    .booking-form textarea{height:94px;min-height:94px;resize:vertical;overflow:auto}
+    .booking-form input[type="date"],.booking-form input[type="time"]{direction:ltr;text-align:left}
+    .booking-form input[type="date"]::-webkit-date-and-time-value,.booking-form input[type="time"]::-webkit-date-and-time-value{min-width:0;margin:0;text-align:left}
     .booking-form input::placeholder,.booking-form textarea::placeholder{color:#8d8c80}
     .booking-form input:focus,.booking-form select:focus,.booking-form textarea:focus{border-color:#8b7845;outline:2px solid rgba(179,154,93,.18);outline-offset:1px}
     .booking-submit{justify-self:start;min-width:250px;cursor:pointer}
@@ -250,8 +253,8 @@
       .map-panel iframe{height:380px}
       .booking{grid-template-columns:1fr;gap:35px;padding:88px var(--page-pad)}
       .booking h2{font-size:clamp(50px,11vw,72px)}
-      .booking-form{gap:18px}
-      .form-row{grid-template-columns:1fr;gap:17px}
+      .booking-form{gap:18px;padding-top:0}
+      .form-row{grid-template-columns:minmax(0,1fr);gap:17px}
       .booking-submit{width:100%}
       .moments{padding:82px var(--page-pad) 92px}
       .moments-head{display:block;margin-bottom:28px}
@@ -413,7 +416,7 @@
       </div>
       <form class="booking-form reveal" id="bookingForm">
         <div class="form-row">
-          <label for="bookingDate"><span class="field-label" data-i18n="fieldWhen">When</span><input id="bookingDate" name="date" type="date" required aria-label="date" data-i18n-aria-label="bookingDateLabel"></label>
+          <label for="bookingDate"><span class="field-label" data-i18n="fieldWhen">When</span><input id="bookingDate" name="date" type="date" lang="fi-FI" required aria-label="date" data-i18n-aria-label="bookingDateLabel"></label>
           <label for="bookingGuests">
             <span class="field-label" data-i18n="fieldGuests">How many guests?</span>
             <select id="bookingGuests" name="guests" required><option value="" disabled selected data-i18n="guestsSelect">Select guests</option><option data-i18n="guest1">1 guest</option><option data-i18n="guest2">2 guests</option><option data-i18n="guest3">3 guests</option><option data-i18n="guest4">4 guests</option><option data-i18n="guest5">5 guests</option><option data-i18n="guest6">6 guests</option><option data-i18n="guest7">7 or more guests</option></select>
@@ -421,7 +424,7 @@
         </div>
         <div class="form-row">
           <label for="bookingTime"><span class="field-label" data-i18n="fieldTime">What time?</span>
-            <input id="bookingTime" name="time" type="time" step="60" required aria-label="time" data-i18n-aria-label="bookingTimeLabel">
+            <input id="bookingTime" name="time" type="time" lang="fi-FI" step="60" required aria-label="time" data-i18n-aria-label="bookingTimeLabel">
             <span class="form-field-note" id="bookingTimeHint">Opening hours depend on the day.</span>
           </label>
           <label for="bookingName"><span class="field-label" data-i18n="fieldName">Your name</span><input id="bookingName" name="name" autocomplete="name" required placeholder="Name" data-i18n-placeholder="namePlaceholder"></label>
@@ -586,6 +589,7 @@
     const bookingTimeHint=document.getElementById('bookingTimeHint');
     const pad=value=>String(value).padStart(2,'0');
     const formatDate=date=>date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate());
+    const formatFinnishDate=value=>{const [year,month,day]=value.split('-');return day+'.'+month+'.'+year;};
     const cafeHours=Array.from({length:7},()=>({open:'06:00',close:'20:00'}));
     const nextOpenVisit=after=>{
       const candidate=new Date(after);
@@ -629,7 +633,7 @@
       document.getElementById('bookingForm').addEventListener('submit',event=>{
         event.preventDefault();
         const form=new FormData(event.currentTarget);
-        submittedBooking={guests:form.get('guests'),date:form.get('date'),time:form.get('time')};
+        submittedBooking={guests:form.get('guests'),date:formatFinnishDate(form.get('date')),time:form.get('time')};
         document.getElementById('formStatus').textContent=window.LeParisI18n.format('bookingSummary',submittedBooking);
       });
     }
