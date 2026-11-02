@@ -156,12 +156,17 @@
     .field-label{display:block;min-width:0;min-height:18px;line-height:1.4}
     .booking-form input,.booking-form select,.booking-form textarea{display:block;width:100%;min-width:0;max-width:100%;height:56px;min-height:56px;padding:13px 12px;border:1px solid #bcb7a7;border-radius:0;background:#f6f1e7;color:var(--ink);font-size:16px;letter-spacing:0}
     .booking-form textarea{height:94px;min-height:94px;resize:vertical;overflow:auto}
-    .booking-form .picker-control{position:relative;display:block;width:100%;min-width:0}
-    .booking-form .picker-control input[type="date"],.booking-form .picker-control input[type="time"]{width:100%;min-width:0;max-width:100%;direction:ltr;text-align:left}
-    .booking-form .picker-control.is-enhanced input[type="date"],.booking-form .picker-control.is-enhanced input[type="time"]{-webkit-appearance:none;appearance:none;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none}
-    .booking-form .picker-control.is-enhanced input[type="date"]::-webkit-date-and-time-value,.booking-form .picker-control.is-enhanced input[type="time"]::-webkit-date-and-time-value{min-width:0;margin:0;color:transparent;-webkit-text-fill-color:transparent;text-align:left}
-    .booking-form .picker-display{display:none}
-    .booking-form .picker-control.is-enhanced .picker-display{position:absolute;inset:0;z-index:1;display:flex;align-items:center;overflow:hidden;padding:0 12px;color:var(--ink);font-size:16px;letter-spacing:0;white-space:nowrap;pointer-events:none}
+    .booking-form .date-entry{position:relative;display:flex;align-items:stretch;width:100%;min-width:0}
+    .booking-form .date-entry input[type="text"]{width:0;min-width:0;flex:1 1 0}
+    .booking-form .date-picker-trigger{display:grid;flex:0 0 56px;width:56px;height:56px;place-items:center;margin:0;padding:0;border:1px solid #bcb7a7;border-left:0;border-radius:0;background:#f6f1e7;color:var(--ink);cursor:pointer}
+    .booking-form .date-picker-trigger svg{width:20px;height:20px}
+    .booking-form .date-picker-source{position:absolute!important;top:0;left:0;width:1px!important;height:1px!important;min-width:0!important;min-height:0!important;padding:0!important;border:0!important;opacity:0;overflow:hidden;pointer-events:none}
+    
+    
+    
+    
+    
+    
     
     .booking-form input::placeholder,.booking-form textarea::placeholder{color:#8d8c80}
     .booking-form input:focus,.booking-form select:focus,.booking-form textarea:focus{border-color:#8b7845;outline:2px solid rgba(179,154,93,.18);outline-offset:1px}
@@ -421,7 +426,7 @@
       </div>
       <form class="booking-form reveal" id="bookingForm">
         <div class="form-row">
-          <label for="bookingDate"><span class="field-label" data-i18n="fieldWhen">When</span><span class="picker-control" id="bookingDateControl"><input id="bookingDate" name="date" type="date" lang="fi-FI" required aria-label="date" data-i18n-aria-label="bookingDateLabel"><span class="picker-display" id="bookingDateDisplay" aria-hidden="true"></span></span></label>
+          <label for="bookingDate"><span class="field-label" data-i18n="fieldWhen">When</span><span class="date-entry"><input id="bookingDate" name="date" type="text" inputmode="numeric" autocomplete="off" maxlength="10" pattern="(?:0[1-9]|[12][0-9]|3[01])\.(?:0[1-9]|1[0-2])\.[0-9]{4}" placeholder="PP.KK.VVVV" required aria-label="date" data-i18n-aria-label="bookingDateLabel"><button class="date-picker-trigger" id="bookingDatePickerButton" type="button" aria-label="Choose date" data-i18n-aria-label="chooseDate"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="15" rx="1"/><path d="M7.5 3.5v4M16.5 3.5v4M3.5 9.5h17"/></svg></button><input class="date-picker-source" id="bookingDatePicker" type="date" aria-hidden="true" tabindex="-1"></span></label>
           <label for="bookingGuests">
             <span class="field-label" data-i18n="fieldGuests">How many guests?</span>
             <select id="bookingGuests" name="guests" required><option value="" disabled selected data-i18n="guestsSelect">Select guests</option><option data-i18n="guest1">1 guest</option><option data-i18n="guest2">2 guests</option><option data-i18n="guest3">3 guests</option><option data-i18n="guest4">4 guests</option><option data-i18n="guest5">5 guests</option><option data-i18n="guest6">6 guests</option><option data-i18n="guest7">7 or more guests</option></select>
@@ -429,7 +434,7 @@
         </div>
         <div class="form-row">
           <label for="bookingTime"><span class="field-label" data-i18n="fieldTime">What time?</span>
-            <span class="picker-control" id="bookingTimeControl"><input id="bookingTime" name="time" type="time" lang="fi-FI" step="60" required aria-label="time" data-i18n-aria-label="bookingTimeLabel"><span class="picker-display" id="bookingTimeDisplay" aria-hidden="true"></span></span>
+            <select id="bookingTime" name="time" required aria-label="time" data-i18n-aria-label="bookingTimeLabel"><option value="" disabled selected data-i18n="timeSelect">Choose a time</option></select>
             <span class="form-field-note" id="bookingTimeHint">Opening hours depend on the day.</span>
           </label>
           <label for="bookingName"><span class="field-label" data-i18n="fieldName">Your name</span><input id="bookingName" name="name" autocomplete="name" required placeholder="Name" data-i18n-placeholder="namePlaceholder"></label>
@@ -592,15 +597,26 @@
     const bookingDate=document.getElementById('bookingDate');
     const bookingTime=document.getElementById('bookingTime');
     const bookingTimeHint=document.getElementById('bookingTimeHint');
+    const bookingDatePicker=document.getElementById('bookingDatePicker');
+    const bookingDatePickerButton=document.getElementById('bookingDatePickerButton');
     const pad=value=>String(value).padStart(2,'0');
     const formatDate=date=>date.getFullYear()+'-'+pad(date.getMonth()+1)+'-'+pad(date.getDate());
-    const formatFinnishDate=value=>{if(!value)return '';const [year,month,day]=value.split('-');return day+'.'+month+'.'+year;};
-    const bookingDateDisplay=document.getElementById('bookingDateDisplay');
-    const bookingTimeDisplay=document.getElementById('bookingTimeDisplay');
-    const bookingDateControl=document.getElementById('bookingDateControl');
-    const bookingTimeControl=document.getElementById('bookingTimeControl');
-    const syncDateDisplay=()=>{if(bookingDateDisplay)bookingDateDisplay.textContent=formatFinnishDate(bookingDate.value);};
-    const syncTimeDisplay=()=>{if(bookingTimeDisplay)bookingTimeDisplay.textContent=bookingTime.value||'';};
+    const formatFinnishDate=date=>pad(date.getDate())+'.'+pad(date.getMonth()+1)+'.'+date.getFullYear();
+    const parseFinnishDate=value=>{
+      const match=/^(\d{2})\.(\d{2})\.(\d{4})$/.exec(value.trim());
+      if(!match)return null;
+      const day=Number(match[1]),month=Number(match[2]),year=Number(match[3]);
+      const date=new Date(year,month-1,day);
+      if(date.getFullYear()!==year||date.getMonth()!==month-1||date.getDate()!==day)return null;
+      date.setHours(0,0,0,0);
+      return date;
+    };
+    const normaliseFinnishDate=value=>{
+      const digits=value.replace(/\D/g,'').slice(0,8);
+      if(digits.length<=2)return digits;
+      if(digits.length<=4)return digits.slice(0,2)+'.'+digits.slice(2);
+      return digits.slice(0,2)+'.'+digits.slice(2,4)+'.'+digits.slice(4);
+    };
     const cafeHours=Array.from({length:7},()=>({open:'06:00',close:'20:00'}));
     const nextOpenVisit=after=>{
       const candidate=new Date(after);
@@ -616,41 +632,76 @@
       }
       return candidate;
     };
-    if(bookingDate&&bookingTime&&bookingTimeHint){
+    if(bookingDate&&bookingTime&&bookingTimeHint&&bookingDatePicker&&bookingDatePickerButton){
       const now=new Date();
+      const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
       const defaultVisit=nextOpenVisit(new Date(now.getTime()+30*60*1000));
-      bookingDate.min=formatDate(now);
-      bookingDate.value=formatDate(defaultVisit);
-      bookingTime.value=pad(defaultVisit.getHours())+':'+pad(defaultVisit.getMinutes());
-      syncDateDisplay();
-      syncTimeDisplay();
-      bookingDateControl.classList.add('is-enhanced');
-      bookingTimeControl.classList.add('is-enhanced');
-      const updateBookingTimeLimits=()=>{
-        if(!bookingDate.value)return;
-        const [year,month,day]=bookingDate.value.split('-').map(Number);
-        const hours=cafeHours[new Date(year,month-1,day).getDay()];
-        const [closeHour,closeMinute]=hours.close.split(':').map(Number);
-        const lastMinute=closeHour*60+closeMinute-1;
-        const latest=pad(Math.floor(lastMinute/60))+':'+pad(lastMinute%60);
-        bookingTime.min=hours.open;
-        bookingTime.max=latest;
-        bookingTimeHint.textContent=window.LeParisI18n.format('hoursOpen',{open:hours.open,close:hours.close});
-        if(!bookingTime.value||bookingTime.value<hours.open||bookingTime.value>latest)bookingTime.value=hours.open;
-        syncTimeDisplay();
+      const defaultTime=pad(defaultVisit.getHours())+':'+pad(defaultVisit.getMinutes());
+      bookingDate.value=formatFinnishDate(defaultVisit);
+      bookingDatePicker.min=formatDate(today);
+      bookingDatePicker.value=formatDate(defaultVisit);
+      const validateBookingDate=()=>{
+        if(!bookingDate.value.trim()){bookingDate.setCustomValidity('');return null;}
+        const date=parseFinnishDate(bookingDate.value);
+        if(!date||date<today){bookingDate.setCustomValidity(window.LeParisI18n.format('dateInvalid'));return null;}
+        bookingDate.setCustomValidity('');
+        bookingDatePicker.value=formatDate(date);
+        return date;
       };
-      bookingDate.addEventListener('change',()=>{syncDateDisplay();updateBookingTimeLimits();});
-      bookingTime.addEventListener('change',syncTimeDisplay);
+      const updateBookingTimeLimits=preferredTime=>{
+        const selectedDate=validateBookingDate();
+        if(!selectedDate)return;
+        const hours=cafeHours[selectedDate.getDay()];
+        const [openHour,openMinute]=hours.open.split(':').map(Number);
+        const [closeHour,closeMinute]=hours.close.split(':').map(Number);
+        const firstMinute=openHour*60+openMinute;
+        const lastMinute=closeHour*60+closeMinute-1;
+        const available=[];
+        for(let minute=firstMinute;minute<=lastMinute;minute+=15){
+          available.push(pad(Math.floor(minute/60))+':'+pad(minute%60));
+        }
+        if(preferredTime&&preferredTime>=hours.open&&preferredTime<=pad(Math.floor(lastMinute/60))+':'+pad(lastMinute%60)&&!available.includes(preferredTime))available.push(preferredTime);
+        available.sort();
+        const placeholder=new Option(window.LeParisI18n.format('timeSelect'),'');
+        placeholder.disabled=true;
+        bookingTime.replaceChildren(placeholder,...available.map(value=>new Option(value,value)));
+        bookingTime.value=available.includes(preferredTime)?preferredTime:(available[0]||'');
+        bookingTimeHint.textContent=window.LeParisI18n.format('hoursOpen',{open:hours.open,close:hours.close});
+      };
+      updateBookingTimeLimits(defaultTime);
+      bookingDate.addEventListener('input',()=>{
+        bookingDate.value=normaliseFinnishDate(bookingDate.value);
+        const validDate=validateBookingDate();
+        if(validDate)updateBookingTimeLimits(bookingTime.value);
+      });
+      bookingDate.addEventListener('change',()=>{
+        const validDate=validateBookingDate();
+        if(validDate)updateBookingTimeLimits(bookingTime.value);
+      });
+      bookingDatePickerButton.addEventListener('click',event=>{
+        event.preventDefault();
+        try{
+          if(typeof bookingDatePicker.showPicker==='function'){bookingDatePicker.showPicker();return;}
+        }catch(_){ }
+        bookingDatePicker.focus();
+        bookingDatePicker.click();
+      });
+      bookingDatePicker.addEventListener('change',()=>{
+        if(!bookingDatePicker.value)return;
+        const [year,month,day]=bookingDatePicker.value.split('-').map(Number);
+        bookingDate.value=formatFinnishDate(new Date(year,month-1,day));
+        const validDate=validateBookingDate();
+        if(validDate)updateBookingTimeLimits(bookingTime.value);
+      });
       let submittedBooking=null;
       document.addEventListener('le-paris-language-change',()=>{
-        updateBookingTimeLimits();
+        updateBookingTimeLimits(bookingTime.value);
         if(submittedBooking)document.getElementById('formStatus').textContent=window.LeParisI18n.format('bookingSummary',submittedBooking);
       });
-      updateBookingTimeLimits();
       document.getElementById('bookingForm').addEventListener('submit',event=>{
         event.preventDefault();
         const form=new FormData(event.currentTarget);
-        submittedBooking={guests:form.get('guests'),date:formatFinnishDate(form.get('date')),time:form.get('time')};
+        submittedBooking={guests:form.get('guests'),date:form.get('date'),time:form.get('time')};
         document.getElementById('formStatus').textContent=window.LeParisI18n.format('bookingSummary',submittedBooking);
       });
     }
